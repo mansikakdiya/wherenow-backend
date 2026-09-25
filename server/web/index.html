@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Location Request</title>
+</head>
+
+<body>
+
+    <h2>Location Sharing Request</h2>
+
+    <p>Someone wants you to share your location.</p>
+
+    <button onclick="acceptLocation()">
+        Accept & Share Location
+    </button>
+
+    <!-- Socket.IO client -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+
+        // Get request ID from URL
+        const requestId =
+            new URLSearchParams(window.location.search).get("requestId");
+
+        // Connect to Socket.IO
+        const socket = io();
+
+        // Join the request room
+        socket.emit("join-request", requestId);
+
+        console.log("Joined request:", requestId);
+
+
+        function acceptLocation() {
+
+            if (!navigator.geolocation) {
+                alert("Location is not supported on this device.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+
+                function (position) {
+
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    console.log("Latitude:", latitude);
+                    console.log("Longitude:", longitude);
+
+
+                    // Send location to backend
+                    fetch("/location", {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            requestId: requestId,
+                            latitude: latitude,
+                            longitude: longitude
+                        })
+                    })
+
+                    .then(response => response.json())
+
+                    .then(data => {
+
+                        console.log(data);
+
+
+                        // Open Google Maps at B's location
+                        const googleMapsUrl =
+                            `https://www.google.com/maps?q=${latitude},${longitude}`;
+
+                        window.location.href = googleMapsUrl;
+
+                    })
+
+                    .catch(error => {
+
+                        console.error(
+                            "Error sending location:",
+                            error
+                        );
+
+                    });
+
+                },
+
+                function (error) {
+
+                    alert("Please allow location access.");
+
+                    console.log(error);
+
+                }
+
+            );
+
+        }
+
+    </script>
+
+</body>
+
+</html>
