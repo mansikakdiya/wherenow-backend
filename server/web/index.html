@@ -1,36 +1,860 @@
-
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 
 <head>
 
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>WhereNow - Share Location</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        body {
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                sans-serif;
+
+            background: #f6f7f9;
+
+            color: #17181a;
+
+            min-height: 100vh;
+
+            display: flex;
+
+            justify-content: center;
+
+        }
+
+
+        .container {
+
+            width: 100%;
+
+            max-width: 480px;
+
+            padding:
+                24px 18px 40px;
+
+        }
+
+
+        /* ================================
+           Header
+        ================================= */
+
+        .header {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 32px;
+
+        }
+
+
+        .logo {
+
+            width: 46px;
+
+            height: 46px;
+
+            border-radius: 14px;
+
+            background: #17181a;
+
+            color: white;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 22px;
+
+            font-weight: 700;
+
+        }
+
+
+        .brand {
+
+            font-size: 21px;
+
+            font-weight: 700;
+
+        }
+
+
+        .tagline {
+
+            font-size: 13px;
+
+            color: #7b7f86;
+
+            margin-top: 3px;
+
+        }
+
+
+        /* ================================
+           Main Card
+        ================================= */
+
+        .card {
+
+            background: white;
+
+            border-radius: 24px;
+
+            padding: 25px;
+
+            box-shadow:
+                0 8px 30px rgba(
+                    0,
+                    0,
+                    0,
+                    0.06
+                );
+
+        }
+
+
+        .location-icon {
+
+            width: 72px;
+
+            height: 72px;
+
+            border-radius: 22px;
+
+            background: #eef4ff;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 34px;
+
+            margin-bottom: 22px;
+
+        }
+
+
+        h1 {
+
+            font-size: 27px;
+
+            line-height: 1.2;
+
+            margin-bottom: 11px;
+
+        }
+
+
+        .description {
+
+            font-size: 14px;
+
+            line-height: 1.65;
+
+            color: #72767d;
+
+            margin-bottom: 24px;
+
+        }
+
+
+        /* ================================
+           Info Box
+        ================================= */
+
+        .info-box {
+
+            background: #f6f7f9;
+
+            border-radius: 16px;
+
+            padding: 16px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .info-row {
+
+            display: flex;
+
+            gap: 12px;
+
+            margin-bottom: 14px;
+
+        }
+
+
+        .info-row:last-child {
+
+            margin-bottom: 0;
+
+        }
+
+
+        .info-icon {
+
+            width: 30px;
+
+            height: 30px;
+
+            flex-shrink: 0;
+
+            border-radius: 9px;
+
+            background: white;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 14px;
+
+        }
+
+
+        .info-title {
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            margin-bottom: 2px;
+
+        }
+
+
+        .info-text {
+
+            font-size: 12px;
+
+            color: #858990;
+
+            line-height: 1.4;
+
+        }
+
+
+        /* ================================
+           Button
+        ================================= */
+
+        button {
+
+            width: 100%;
+
+            border: none;
+
+            border-radius: 14px;
+
+            padding: 16px;
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.15s,
+                opacity 0.15s;
+
+        }
+
+
+        button:active {
+
+            transform: scale(0.98);
+
+        }
+
+
+        .share-button {
+
+            background: #17181a;
+
+            color: white;
+
+        }
+
+
+        .share-button:disabled {
+
+            opacity: 0.5;
+
+            cursor: not-allowed;
+
+        }
+
+
+        .stop-button {
+
+            background: #f0f1f3;
+
+            color: #17181a;
+
+            margin-top: 12px;
+
+        }
+
+
+        /* ================================
+           Status
+        ================================= */
+
+        .status {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            margin-top: 18px;
+
+            color: #777b82;
+
+            font-size: 12px;
+
+        }
+
+
+        .dot {
+
+            width: 8px;
+
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #f0a000;
+
+        }
+
+
+        .dot.active {
+
+            background: #20a464;
+
+            box-shadow:
+                0 0 0 5px
+                rgba(
+                    32,
+                    164,
+                    100,
+                    0.10
+                );
+
+        }
+
+
+        /* ================================
+           Live Location Card
+        ================================= */
+
+        .live-card {
+
+            display: none;
+
+            margin-top: 16px;
+
+            background: white;
+
+            border-radius: 24px;
+
+            padding: 22px;
+
+            box-shadow:
+                0 8px 30px rgba(
+                    0,
+                    0,
+                    0,
+                    0.06
+                );
+
+        }
+
+
+        .live-card.visible {
+
+            display: block;
+
+        }
+
+
+        .live-header {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            margin-bottom: 18px;
+
+        }
+
+
+        .live-indicator {
+
+            width: 10px;
+
+            height: 10px;
+
+            border-radius: 50%;
+
+            background: #20a464;
+
+            box-shadow:
+                0 0 0 5px
+                rgba(
+                    32,
+                    164,
+                    100,
+                    0.10
+                );
+
+        }
+
+
+        .live-title {
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+        }
+
+
+        .coordinates {
+
+            background: #f6f7f9;
+
+            border-radius: 15px;
+
+            padding: 14px;
+
+        }
+
+
+        .coordinate-row {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 12px;
+
+            padding: 7px 0;
+
+        }
+
+
+        .coordinate-label {
+
+            color: #858990;
+
+            font-size: 12px;
+
+        }
+
+
+        .coordinate-value {
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            text-align: right;
+
+            word-break: break-all;
+
+        }
+
+
+        .updated {
+
+            color: #92969c;
+
+            font-size: 11px;
+
+            margin-top: 10px;
+
+        }
+
+
+        /* ================================
+           Error
+        ================================= */
+
+        .error {
+
+            display: none;
+
+            background: #fff0f0;
+
+            color: #c43d3d;
+
+            border-radius: 13px;
+
+            padding: 13px;
+
+            font-size: 13px;
+
+            margin-top: 14px;
+
+        }
+
+
+        .error.visible {
+
+            display: block;
+
+        }
+
+
+        /* ================================
+           Footer
+        ================================= */
+
+        .footer {
+
+            text-align: center;
+
+            color: #9a9da2;
+
+            font-size: 11px;
+
+            margin-top: 25px;
+
+        }
+
+
+        /* ================================
+           Mobile
+        ================================= */
+
+        @media (max-width: 360px) {
+
+            .container {
+
+                padding:
+                    18px 14px 30px;
+
+            }
+
+
+            .card {
+
+                padding: 20px;
+
+            }
+
+
+            h1 {
+
+                font-size: 23px;
+
+            }
+
+        }
+
+    </style>
 
 </head>
 
 
 <body>
 
-    <h2>WhereNow</h2>
+    <main class="container">
 
 
-    <p>
-        Someone wants you to share your location.
-    </p>
+        <!-- ================================
+             Header
+        ================================= -->
+
+        <header class="header">
+
+            <div class="logo">
+                W
+            </div>
+
+            <div>
+
+                <div class="brand">
+                    WhereNow
+                </div>
+
+                <div class="tagline">
+                    Live location sharing
+                </div>
+
+            </div>
+
+        </header>
 
 
-    <button
-        id="shareButton"
-        onclick="acceptLocation()"
-    >
-        Accept & Share Location
-    </button>
+        <!-- ================================
+             Request Card
+        ================================= -->
+
+        <section class="card">
+
+            <div class="location-icon">
+                📍
+            </div>
 
 
-    <p id="status">
-        Connecting...
-    </p>
+            <h1>
+                Share your location
+            </h1>
+
+
+            <p class="description">
+
+                Someone is requesting your
+                current location. Your location
+                will be shared only while you
+                keep location sharing active.
+
+            </p>
+
+
+            <!-- ================================
+                 Information
+            ================================= -->
+
+            <div class="info-box">
+
+
+                <div class="info-row">
+
+                    <div class="info-icon">
+                        📡
+                    </div>
+
+                    <div>
+
+                        <div class="info-title">
+                            Live location
+                        </div>
+
+                        <div class="info-text">
+                            Your location will update
+                            continuously.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-row">
+
+                    <div class="info-icon">
+                        🔒
+                    </div>
+
+                    <div>
+
+                        <div class="info-title">
+                            You stay in control
+                        </div>
+
+                        <div class="info-text">
+                            You choose when to start
+                            and stop sharing.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-row">
+
+                    <div class="info-icon">
+                        📍
+                    </div>
+
+                    <div>
+
+                        <div class="info-title">
+                            GPS coordinates
+                        </div>
+
+                        <div class="info-text">
+                            Your device's location is
+                            used to provide the coordinates.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- ================================
+                 Share Button
+            ================================= -->
+
+            <button
+                id="shareButton"
+                class="share-button"
+                onclick="acceptLocation()"
+            >
+                Allow & Share Location
+            </button>
+
+
+            <!-- ================================
+                 Status
+            ================================= -->
+
+            <div class="status">
+
+                <span
+                    id="statusDot"
+                    class="dot"
+                ></span>
+
+                <span id="status">
+                    Ready to share
+                </span>
+
+            </div>
+
+
+            <!-- ================================
+                 Error
+            ================================= -->
+
+            <div
+                id="error"
+                class="error"
+            ></div>
+
+        </section>
+
+
+        <!-- ================================
+             Live Location
+        ================================= -->
+
+        <section
+            id="liveCard"
+            class="live-card"
+        >
+
+            <div class="live-header">
+
+                <span class="live-indicator"></span>
+
+                <span class="live-title">
+                    Your location is being shared
+                </span>
+
+            </div>
+
+
+            <div class="coordinates">
+
+
+                <div class="coordinate-row">
+
+                    <span class="coordinate-label">
+                        Latitude
+                    </span>
+
+                    <span
+                        id="latitude"
+                        class="coordinate-value"
+                    >
+                        -
+                    </span>
+
+                </div>
+
+
+                <div class="coordinate-row">
+
+                    <span class="coordinate-label">
+                        Longitude
+                    </span>
+
+                    <span
+                        id="longitude"
+                        class="coordinate-value"
+                    >
+                        -
+                    </span>
+
+                </div>
+
+
+            </div>
+
+
+            <div
+                id="updatedAt"
+                class="updated"
+            >
+                Waiting for GPS...
+            </div>
+
+
+            <button
+                class="stop-button"
+                onclick="stopSharing()"
+            >
+                Stop Sharing
+            </button>
+
+        </section>
+
+
+        <div class="footer">
+            WhereNow · Location sharing
+        </div>
+
+    </main>
 
 
     <script src="/socket.io/socket.io.js"></script>
@@ -39,13 +863,23 @@
     <script>
 
         // ========================================
+        // Base URL
+        // ========================================
+
+        const BASE_URL =
+            window.location.origin;
+
+
+        // ========================================
         // Request ID
         // ========================================
 
         const requestId =
             new URLSearchParams(
                 window.location.search
-            ).get("requestId");
+            ).get(
+                "requestId"
+            );
 
 
         console.log(
@@ -55,7 +889,7 @@
 
 
         // ========================================
-        // Status
+        // Elements
         // ========================================
 
         const statusElement =
@@ -63,11 +897,47 @@
                 "status"
             );
 
+        const statusDot =
+            document.getElementById(
+                "statusDot"
+            );
 
         const shareButton =
             document.getElementById(
                 "shareButton"
             );
+
+        const liveCard =
+            document.getElementById(
+                "liveCard"
+            );
+
+        const latitudeElement =
+            document.getElementById(
+                "latitude"
+            );
+
+        const longitudeElement =
+            document.getElementById(
+                "longitude"
+            );
+
+        const updatedAtElement =
+            document.getElementById(
+                "updatedAt"
+            );
+
+        const errorElement =
+            document.getElementById(
+                "error"
+            );
+
+
+        // ========================================
+        // Variables
+        // ========================================
+
+        let watchId = null;
 
 
         // ========================================
@@ -75,11 +945,30 @@
         // ========================================
 
         const socket =
-            io(window.location.origin);
+            io(BASE_URL);
 
 
         // ========================================
-        // Connected
+        // Validate Request
+        // ========================================
+
+        if (!requestId) {
+
+            shareButton.disabled =
+                true;
+
+            statusElement.innerText =
+                "Invalid location request.";
+
+            showError(
+                "This link is missing a request ID."
+            );
+
+        }
+
+
+        // ========================================
+        // Socket Connected
         // ========================================
 
         socket.on(
@@ -92,8 +981,13 @@
                 );
 
 
+                if (!requestId) {
+                    return;
+                }
+
+
                 statusElement.innerText =
-                    "Connected";
+                    "Connected and ready";
 
 
                 socket.emit(
@@ -124,6 +1018,18 @@
                     data
                 );
 
+
+                if (
+                    data.status ===
+                    "active"
+                ) {
+
+                    console.log(
+                        "Request is already active."
+                    );
+
+                }
+
             }
         );
 
@@ -142,11 +1048,272 @@
                 );
 
 
+                shareButton.disabled =
+                    true;
+
+
                 statusElement.innerText =
-                    data.message;
+                    "Request unavailable";
+
+
+                showError(
+                    data.message ||
+                    "Location request not found."
+                );
 
             }
         );
+
+
+        // ========================================
+        // Accept Location
+        // ========================================
+
+        function acceptLocation() {
+
+            hideError();
+
+
+            if (!requestId) {
+
+                showError(
+                    "Invalid location request."
+                );
+
+                return;
+
+            }
+
+
+            if (!navigator.geolocation) {
+
+                showError(
+                    "Your device does not support location services."
+                );
+
+                return;
+
+            }
+
+
+            shareButton.disabled =
+                true;
+
+
+            shareButton.innerText =
+                "Starting location...";
+
+
+            statusElement.innerText =
+                "Requesting GPS permission...";
+
+
+            // ========================================
+            // Start continuous GPS
+            // ========================================
+
+            watchId =
+                navigator.geolocation.watchPosition(
+
+                    function(position) {
+
+                        const latitude =
+                            position.coords.latitude;
+
+                        const longitude =
+                            position.coords.longitude;
+
+
+                        console.log(
+                            "Live GPS:",
+                            latitude,
+                            longitude
+                        );
+
+
+                        // ========================================
+                        // Update UI
+                        // ========================================
+
+                        latitudeElement.innerText =
+                            latitude.toFixed(6);
+
+                        longitudeElement.innerText =
+                            longitude.toFixed(6);
+
+
+                        updatedAtElement.innerText =
+                            `Last updated: ${new Date().toLocaleTimeString()}`;
+
+
+                        liveCard.classList.add(
+                            "visible"
+                        );
+
+
+                        statusElement.innerText =
+                            "Location sharing is active";
+
+
+                        statusDot.classList.add(
+                            "active"
+                        );
+
+
+                        shareButton.innerText =
+                            "Location Sharing Active";
+
+
+                        // ========================================
+                        // Send location to backend
+                        // ========================================
+
+                        socket.emit(
+                            "location-update",
+                            {
+
+                                requestId:
+                                    requestId,
+
+                                latitude:
+                                    latitude,
+
+                                longitude:
+                                    longitude
+
+                            }
+                        );
+
+                    },
+
+
+                    function(error) {
+
+                        console.error(
+                            "Location error:",
+                            error
+                        );
+
+
+                        shareButton.disabled =
+                            false;
+
+
+                        shareButton.innerText =
+                            "Allow & Share Location";
+
+
+                        statusElement.innerText =
+                            "Location permission required";
+
+
+                        switch (
+                            error.code
+                        ) {
+
+                            case 1:
+
+                                showError(
+                                    "Please allow location access in your browser settings."
+                                );
+
+                                break;
+
+
+                            case 2:
+
+                                showError(
+                                    "Your location could not be determined."
+                                );
+
+                                break;
+
+
+                            case 3:
+
+                                showError(
+                                    "Location request timed out. Please try again."
+                                );
+
+                                break;
+
+
+                            default:
+
+                                showError(
+                                    "Unable to get your location."
+                                );
+
+                        }
+
+                    },
+
+
+                    {
+
+                        enableHighAccuracy:
+                            true,
+
+                        maximumAge:
+                            0,
+
+                        timeout:
+                            10000
+
+                    }
+
+                );
+
+        }
+
+
+        // ========================================
+        // Stop Sharing
+        // ========================================
+
+        function stopSharing() {
+
+            if (
+                watchId !== null
+            ) {
+
+                navigator.geolocation.clearWatch(
+                    watchId
+                );
+
+                watchId =
+                    null;
+
+            }
+
+
+            shareButton.disabled =
+                false;
+
+
+            shareButton.innerText =
+                "Allow & Share Location";
+
+
+            statusElement.innerText =
+                "Location sharing stopped";
+
+
+            statusDot.classList.remove(
+                "active"
+            );
+
+
+            liveCard.classList.remove(
+                "visible"
+            );
+
+
+            console.log(
+                "Location sharing stopped."
+            );
+
+        }
 
 
         // ========================================
@@ -166,125 +1333,36 @@
                 statusElement.innerText =
                     "Connection failed";
 
+                showError(
+                    "Unable to connect to the WhereNow server."
+                );
+
             }
         );
 
 
         // ========================================
-        // Accept Location
+        // Error Helpers
         // ========================================
 
-        function acceptLocation() {
+        function showError(
+            message
+        ) {
 
-            if (!requestId) {
+            errorElement.innerText =
+                message;
 
-                statusElement.innerText =
-                    "Invalid location request.";
+            errorElement.classList.add(
+                "visible"
+            );
 
-                return;
-
-            }
-
-
-            if (!navigator.geolocation) {
-
-                statusElement.innerText =
-                    "Location is not supported.";
-
-                return;
-
-            }
+        }
 
 
-            statusElement.innerText =
-                "Starting live location...";
+        function hideError() {
 
-
-            shareButton.disabled =
-                true;
-
-
-            // ========================================
-            // Watch GPS continuously
-            // ========================================
-
-            navigator.geolocation.watchPosition(
-
-                function(position) {
-
-                    const latitude =
-                        position.coords.latitude;
-
-
-                    const longitude =
-                        position.coords.longitude;
-
-
-                    console.log(
-                        "Live GPS:",
-                        latitude,
-                        longitude
-                    );
-
-
-                    // ========================================
-                    // Send location to backend
-                    // ========================================
-
-                    socket.emit(
-                        "location-update",
-                        {
-
-                            requestId:
-                                requestId,
-
-                            latitude:
-                                latitude,
-
-                            longitude:
-                                longitude
-
-                        }
-                    );
-
-
-                    statusElement.innerText =
-                        "Location sharing is active.";
-
-                },
-
-
-                function(error) {
-
-                    console.error(
-                        "Location error:",
-                        error
-                    );
-
-
-                    shareButton.disabled =
-                        false;
-
-
-                    statusElement.innerText =
-                        "Please allow location access.";
-
-                },
-
-
-                {
-
-                    enableHighAccuracy:
-                        true,
-
-                    maximumAge:
-                        0,
-
-                    timeout:
-                        10000
-
-                }
-
+            errorElement.classList.remove(
+                "visible"
             );
 
         }
@@ -294,4 +1372,3 @@
 </body>
 
 </html>
-
