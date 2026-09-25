@@ -3,220 +3,272 @@
 <html>
 
 <head>
-    <title>Location Request</title>
+
+    <title>WhereNow - Share Location</title>
+
 </head>
 
+
 <body>
-<h2>Location Sharing Request</h2>
 
-<p>Someone wants you to share your location.</p>
+    <h2>WhereNow</h2>
 
-<button onclick="acceptLocation()">
-    Accept & Share Location
-</button>
+    <p>
+        Someone wants you to share your location.
+    </p>
 
-<!-- Socket.IO client -->
-<script src="/socket.io/socket.io.js"></script>
-
-<script>
-
-    // ==============================
-    // Get Request ID from URL
-    // ==============================
-
-    const requestId =
-        new URLSearchParams(window.location.search)
-            .get("requestId");
-
-    console.log("Request ID:", requestId);
+    <button onclick="acceptLocation()">
+        Accept & Share Location
+    </button>
 
 
-    // ==============================
-    // Connect to Socket.IO
-    // ==============================
-
-    const socket =
-        io("https://wherenow-backend-gfvd.onrender.com");
+    <p id="status">
+        Connecting...
+    </p>
 
 
-    // ==============================
-    // Socket Connected
-    // ==============================
+    <!-- Socket.IO -->
 
-    socket.on("connect", () => {
+    <script src="/socket.io/socket.io.js"></script>
+
+
+    <script>
+
+        // ========================================
+        // Request ID
+        // ========================================
+
+        const requestId =
+            new URLSearchParams(
+                window.location.search
+            ).get("requestId");
+
 
         console.log(
-            "Connected to Socket.IO:",
-            socket.id
-        );
-
-
-        // Join request room
-        socket.emit(
-            "join-request",
+            "Request ID:",
             requestId
         );
 
 
-        console.log(
-            "Joined request:",
-            requestId
-        );
+        // ========================================
+        // Status UI
+        // ========================================
 
-    });
-
-
-    // ==============================
-    // Socket Connection Error
-    // ==============================
-
-    socket.on("connect_error", (error) => {
-
-        console.error(
-            "Socket connection error:",
-            error
-        );
-
-    });
+        const statusElement =
+            document.getElementById("status");
 
 
-    // ==============================
-    // Socket Disconnected
-    // ==============================
+        // ========================================
+        // Socket Connection
+        // ========================================
 
-    socket.on("disconnect", () => {
-
-        console.log(
-            "Socket disconnected"
-        );
-
-    });
+        const socket =
+            io("https://wherenow-backend-gfvd.onrender.com");
 
 
-    // ==============================
-    // Accept Location
-    // ==============================
+        // ========================================
+        // Connected
+        // ========================================
 
-    function acceptLocation() {
-
-        if (!navigator.geolocation) {
-
-            alert(
-                "Location is not supported on this device."
-            );
-
-            return;
-        }
-
-
-        navigator.geolocation.getCurrentPosition(
-
-            function (position) {
-
-                const latitude =
-                    position.coords.latitude;
-
-                const longitude =
-                    position.coords.longitude;
-
+        socket.on(
+            "connect",
+            () => {
 
                 console.log(
-                    "Latitude:",
-                    latitude
-                );
-
-                console.log(
-                    "Longitude:",
-                    longitude
+                    "Socket connected:",
+                    socket.id
                 );
 
 
-                // ==============================
-                // Send Location to Backend
-                // ==============================
-
-                fetch(
-                    "https://wherenow-backend-gfvd.onrender.com/location",
-                    {
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-
-                        body: JSON.stringify({
-
-                            requestId: requestId,
-
-                            latitude: latitude,
-
-                            longitude: longitude
-
-                        })
-
-                    }
-                )
-
-                .then(response => {
-
-                    return response.json();
-
-                })
-
-                .then(data => {
-
-                    console.log(
-                        "Server response:",
-                        data
-                    );
+                statusElement.innerText =
+                    "Connected";
 
 
-                    // ==============================
-                    // Open Google Maps
-                    // ==============================
+                // Join request room
 
-                    const googleMapsUrl =
-                        `https://www.google.com/maps?q=${latitude},${longitude}`;
-
-
-                    window.location.href =
-                        googleMapsUrl;
-
-                })
-
-                .catch(error => {
-
-                    console.error(
-                        "Error sending location:",
-                        error
-                    );
-
-                });
-
-            },
-
-
-            function (error) {
-
-                alert(
-                    "Please allow location access."
-                );
-
-
-                console.error(
-                    "Location error:",
-                    error
+                socket.emit(
+                    "join-request",
+                    requestId
                 );
 
             }
-
         );
 
-    }
 
-</script>
+        // ========================================
+        // Request Status
+        // ========================================
 
+        socket.on(
+            "request-status",
+            (data) => {
+
+                console.log(
+                    "Request status:",
+                    data
+                );
+
+            }
+        );
+
+
+        // ========================================
+        // Request Error
+        // ========================================
+
+        socket.on(
+            "request-error",
+            (data) => {
+
+                console.error(
+                    "Request error:",
+                    data
+                );
+
+
+                statusElement.innerText =
+                    data.message;
+
+            }
+        );
+
+
+        // ========================================
+        // Socket Error
+        // ========================================
+
+        socket.on(
+            "connect_error",
+            (error) => {
+
+                console.error(
+                    "Socket connection error:",
+                    error
+                );
+
+
+                statusElement.innerText =
+                    "Connection failed";
+
+            }
+        );
+
+
+        // ========================================
+        // Disconnect
+        // ========================================
+
+        socket.on(
+            "disconnect",
+            () => {
+
+                console.log(
+                    "Socket disconnected"
+                );
+
+
+                statusElement.innerText =
+                    "Disconnected";
+
+            }
+        );
+
+
+        // ========================================
+        // ACCEPT LOCATION
+        // ========================================
+
+        function acceptLocation() {
+
+            if (!navigator.geolocation) {
+
+                alert(
+                    "Location is not supported."
+                );
+
+                return;
+
+            }
+
+
+            statusElement.innerText =
+                "Getting your location...";
+
+
+            navigator.geolocation.getCurrentPosition(
+
+                function(position) {
+
+                    const latitude =
+                        position.coords.latitude;
+
+
+                    const longitude =
+                        position.coords.longitude;
+
+
+                    console.log(
+                        "Latitude:",
+                        latitude
+                    );
+
+
+                    console.log(
+                        "Longitude:",
+                        longitude
+                    );
+
+
+                    // ========================================
+                    // Send first location using Socket.IO
+                    // ========================================
+
+                    socket.emit(
+                        "location-update",
+                        {
+
+                            requestId:
+
+                                requestId,
+
+                            latitude:
+
+                                latitude,
+
+                            longitude:
+
+                                longitude
+
+                        }
+                    );
+
+
+                    statusElement.innerText =
+                        "Location shared successfully.";
+
+                },
+
+
+                function(error) {
+
+                    console.error(
+                        "Location error:",
+                        error
+                    );
+
+
+                    alert(
+                        "Please allow location access."
+                    );
+
+                }
+
+            );
+
+        }
+
+    </script>
 
 </body>
 
-</html>
+</html> 
