@@ -5,7 +5,38 @@
 
 <head>
 
-    <title>WhereNow - Request Location</title>
+    <title>WhereNow - Live Location</title>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #map {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        #shareSection {
+            display: none;
+        }
+
+    </style>
 
 </head>
 
@@ -29,25 +60,35 @@
     </p>
 
 
-    <div
-        id="shareSection"
-        style="display: none;"
-    >
+    <div id="shareSection">
 
         <p>
             Send this link to the person:
         </p>
-
 
         <input
             id="shareUrl"
             type="text"
             readonly
             style="width: 400px;"
-        />
+        >
 
     </div>
 
+
+    <!-- Live Map -->
+
+    <div id="map"></div>
+
+
+    <!-- Leaflet JS -->
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+
+    <!-- Socket.IO -->
 
     <script src="/socket.io/socket.io.js"></script>
 
@@ -74,6 +115,106 @@
             document.getElementById(
                 "shareUrl"
             );
+
+
+        const mapElement =
+            document.getElementById(
+                "map"
+            );
+
+
+        // ========================================
+        // Map
+        // ========================================
+
+        let map = null;
+
+        let marker = null;
+
+
+        function initializeMap(
+            latitude,
+            longitude
+        ) {
+
+            if (map) {
+                return;
+            }
+
+
+            mapElement.style.display =
+                "block";
+
+
+            map =
+                L.map("map")
+                    .setView(
+                        [
+                            latitude,
+                            longitude
+                        ],
+                        16
+                    );
+
+
+            L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+                    maxZoom: 19,
+
+                    attribution:
+                        "&copy; OpenStreetMap contributors"
+                }
+            ).addTo(map);
+
+
+            marker =
+                L.marker(
+                    [
+                        latitude,
+                        longitude
+                    ]
+                )
+                .addTo(map)
+                .bindPopup(
+                    "B's Location"
+                )
+                .openPopup();
+
+        }
+
+
+        // ========================================
+        // Update Marker
+        // ========================================
+
+        function updateMap(
+            latitude,
+            longitude
+        ) {
+
+            initializeMap(
+                latitude,
+                longitude
+            );
+
+
+            marker.setLatLng(
+                [
+                    latitude,
+                    longitude
+                ]
+            );
+
+
+            map.panTo(
+                [
+                    latitude,
+                    longitude
+                ]
+            );
+
+        }
 
 
         // ========================================
@@ -172,7 +313,7 @@
 
 
         // ========================================
-        // Connect A to Socket.IO
+        // Connect A
         // ========================================
 
         function connectToRequest(
@@ -208,6 +349,10 @@
             );
 
 
+            // ========================================
+            // Existing Location
+            // ========================================
+
             socket.on(
                 "request-status",
                 (data) => {
@@ -231,7 +376,7 @@
 
 
             // ========================================
-            // Receive Live Location
+            // LIVE Location
             // ========================================
 
             socket.on(
@@ -299,6 +444,12 @@
             statusElement.innerText =
                 `Live location: ${location.latitude}, ${location.longitude}`;
 
+
+            updateMap(
+                location.latitude,
+                location.longitude
+            );
+
         }
 
     </script>
@@ -306,4 +457,3 @@
 </body>
 
 </html>
-
