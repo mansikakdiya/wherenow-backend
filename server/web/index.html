@@ -1,5 +1,5 @@
-
 <!DOCTYPE html>
+
 <html>
 
 <head>
@@ -7,53 +7,137 @@
 </head>
 
 <body>
+<h2>Location Sharing Request</h2>
 
-    <h2>Location Sharing Request</h2>
+<p>Someone wants you to share your location.</p>
 
-    <p>Someone wants you to share your location.</p>
+<button onclick="acceptLocation()">
+    Accept & Share Location
+</button>
 
-    <button onclick="acceptLocation()">
-        Accept & Share Location
-    </button>
+<!-- Socket.IO client -->
+<script src="/socket.io/socket.io.js"></script>
 
-    <!-- Socket.IO client -->
-    <script src="/socket.io/socket.io.js"></script>
+<script>
 
-    <script>
+    // ==============================
+    // Get Request ID from URL
+    // ==============================
 
-        // Get request ID from URL
-        const requestId =
-            new URLSearchParams(window.location.search).get("requestId");
+    const requestId =
+        new URLSearchParams(window.location.search)
+            .get("requestId");
 
-        // Connect to Socket.IO
-        const socket = io();
-
-        // Join the request room
-        socket.emit("join-request", requestId);
-
-        console.log("Joined request:", requestId);
+    console.log("Request ID:", requestId);
 
 
-        function acceptLocation() {
+    // ==============================
+    // Connect to Socket.IO
+    // ==============================
 
-            if (!navigator.geolocation) {
-                alert("Location is not supported on this device.");
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-
-                function (position) {
-
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-
-                    console.log("Latitude:", latitude);
-                    console.log("Longitude:", longitude);
+    const socket =
+        io("https://wherenow-backend-gfvd.onrender.com");
 
 
-                    // Send location to backend
-                    fetch("/location", {
+    // ==============================
+    // Socket Connected
+    // ==============================
+
+    socket.on("connect", () => {
+
+        console.log(
+            "Connected to Socket.IO:",
+            socket.id
+        );
+
+
+        // Join request room
+        socket.emit(
+            "join-request",
+            requestId
+        );
+
+
+        console.log(
+            "Joined request:",
+            requestId
+        );
+
+    });
+
+
+    // ==============================
+    // Socket Connection Error
+    // ==============================
+
+    socket.on("connect_error", (error) => {
+
+        console.error(
+            "Socket connection error:",
+            error
+        );
+
+    });
+
+
+    // ==============================
+    // Socket Disconnected
+    // ==============================
+
+    socket.on("disconnect", () => {
+
+        console.log(
+            "Socket disconnected"
+        );
+
+    });
+
+
+    // ==============================
+    // Accept Location
+    // ==============================
+
+    function acceptLocation() {
+
+        if (!navigator.geolocation) {
+
+            alert(
+                "Location is not supported on this device."
+            );
+
+            return;
+        }
+
+
+        navigator.geolocation.getCurrentPosition(
+
+            function (position) {
+
+                const latitude =
+                    position.coords.latitude;
+
+                const longitude =
+                    position.coords.longitude;
+
+
+                console.log(
+                    "Latitude:",
+                    latitude
+                );
+
+                console.log(
+                    "Longitude:",
+                    longitude
+                );
+
+
+                // ==============================
+                // Send Location to Backend
+                // ==============================
+
+                fetch(
+                    "https://wherenow-backend-gfvd.onrender.com/location",
+                    {
                         method: "POST",
 
                         headers: {
@@ -61,51 +145,77 @@
                         },
 
                         body: JSON.stringify({
+
                             requestId: requestId,
+
                             latitude: latitude,
+
                             longitude: longitude
+
                         })
-                    })
 
-                    .then(response => response.json())
+                    }
+                )
 
-                    .then(data => {
+                .then(response => {
 
-                        console.log(data);
+                    return response.json();
+
+                })
+
+                .then(data => {
+
+                    console.log(
+                        "Server response:",
+                        data
+                    );
 
 
-                        // Open Google Maps at B's location
-                        const googleMapsUrl =
-                            `https://www.google.com/maps?q=${latitude},${longitude}`;
+                    // ==============================
+                    // Open Google Maps
+                    // ==============================
 
-                        window.location.href = googleMapsUrl;
+                    const googleMapsUrl =
+                        `https://www.google.com/maps?q=${latitude},${longitude}`;
 
-                    })
 
-                    .catch(error => {
+                    window.location.href =
+                        googleMapsUrl;
 
-                        console.error(
-                            "Error sending location:",
-                            error
-                        );
+                })
 
-                    });
+                .catch(error => {
 
-                },
+                    console.error(
+                        "Error sending location:",
+                        error
+                    );
 
-                function (error) {
+                });
 
-                    alert("Please allow location access.");
+            },
 
-                    console.log(error);
 
-                }
+            function (error) {
 
-            );
+                alert(
+                    "Please allow location access."
+                );
 
-        }
 
-    </script>
+                console.error(
+                    "Location error:",
+                    error
+                );
+
+            }
+
+        );
+
+    }
+
+</script>
+
 
 </body>
 

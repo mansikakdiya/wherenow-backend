@@ -23,9 +23,8 @@ const requests = {};
 app.use(express.static(path.join(__dirname, "web")));
 
 app.get("/", (req, res) => {
-  res.send("Live Location API is running");
+  res.sendFile(path.join(__dirname, "web", "index.html"));
 });
-
 app.post("/location-request", (req, res) => {
   const { phoneNumber } = req.body;
 
@@ -37,7 +36,7 @@ app.post("/location-request", (req, res) => {
 
   const requestId = Date.now().toString();
 
-  req[requestId] = {
+  requests[requestId] = {
     phoneNumber: phoneNumber,
     status: "pending",
   };
