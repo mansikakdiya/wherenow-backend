@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -11,374 +12,101 @@
 
     <title>WhereNow - Request Location</title>
 
+    <script src="/socket.io/socket.io.js"></script>
+
     <style>
 
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
         }
 
         body {
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Roboto,
-                sans-serif;
-
+            margin: 0;
+            font-family: Arial, sans-serif;
             background: #f6f7f9;
-            color: #17181a;
-
-            min-height: 100vh;
-
-            display: flex;
-            justify-content: center;
+            color: #222;
         }
 
         .container {
-            width: 100%;
-            max-width: 480px;
-            padding: 24px 18px 40px;
-        }
-
-        /* ================================
-           Header
-        ================================= */
-
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            margin-bottom: 32px;
-        }
-
-        .logo {
-            width: 46px;
-            height: 46px;
-
-            border-radius: 14px;
-
-            background: #17181a;
-            color: white;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .brand {
-            font-size: 21px;
-            font-weight: 700;
-        }
-
-        .tagline {
-            font-size: 13px;
-            color: #7b7f86;
-            margin-top: 3px;
-        }
-
-        /* ================================
-           Main Card
-        ================================= */
-
-        .card {
-            background: white;
-
-            border-radius: 24px;
-
-            padding: 24px;
-
-            box-shadow:
-                0 8px 30px rgba(0, 0, 0, 0.06);
-
-            margin-bottom: 16px;
-        }
-
-        .icon {
-            width: 58px;
-            height: 58px;
-
-            border-radius: 18px;
-
-            background: #eef4ff;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            font-size: 27px;
-
-            margin-bottom: 18px;
+            max-width: 420px;
+            margin: auto;
+            padding: 24px 18px;
         }
 
         h1 {
-            font-size: 25px;
-            line-height: 1.2;
-
-            margin-bottom: 9px;
+            margin-bottom: 8px;
         }
 
-        .description {
-            color: #72767d;
-            font-size: 14px;
-            line-height: 1.6;
-
-            margin-bottom: 22px;
+        .subtitle {
+            color: #777;
+            margin-bottom: 24px;
         }
 
-        /* ================================
-           Buttons
-        ================================= */
-
-        button {
-            width: 100%;
-
-            border: none;
-            border-radius: 14px;
-
-            padding: 15px;
-
-            font-size: 15px;
-            font-weight: 600;
-
-            cursor: pointer;
-
-            transition:
-                transform 0.15s,
-                opacity 0.15s;
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        .primary-button {
-            background: #17181a;
-            color: white;
-        }
-
-        .primary-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .maps-button {
-            background: #4285f4;
-            color: white;
-
-            margin-top: 16px;
-        }
-
-        .copy-button {
-            background: #f0f1f3;
-            color: #17181a;
-
-            width: auto;
-            padding: 11px 15px;
-
-            flex-shrink: 0;
-        }
-
-        /* ================================
-           Status
-        ================================= */
-
-        .status-row {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-
-            margin-top: 18px;
-
-            font-size: 13px;
-            color: #70747b;
-        }
-
-        .status-dot {
-            width: 9px;
-            height: 9px;
-
-            border-radius: 50%;
-
-            background: #f0a000;
-        }
-
-        .status-dot.active {
-            background: #20a464;
-        }
-
-        /* ================================
-           Share Link
-        ================================= */
-
-        .section-title {
-            font-size: 13px;
-            font-weight: 600;
-
-            color: #72767d;
-
-            margin-bottom: 9px;
-        }
-
-        .share-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-
-            background: #f6f7f9;
-
-            border-radius: 13px;
-
-            padding: 7px 7px 7px 12px;
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.06);
         }
 
         .share-url {
-            flex: 1;
-
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-
-            font-size: 12px;
-            color: #555a61;
-        }
-
-        /* ================================
-           Location
-        ================================= */
-
-        .location-card {
-            display: none;
-        }
-
-        .location-card.visible {
-            display: block;
-        }
-
-        .location-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            margin-bottom: 20px;
-        }
-
-        .live-dot {
-            width: 10px;
-            height: 10px;
-
-            border-radius: 50%;
-
-            background: #20a464;
-
-            box-shadow:
-                0 0 0 5px rgba(32, 164, 100, 0.12);
-        }
-
-        .live-text {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .coordinates {
-            background: #f6f7f9;
-
-            border-radius: 15px;
-
-            padding: 15px;
-
-            display: grid;
-            gap: 11px;
-        }
-
-        .coordinate-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-        }
-
-        .coordinate-label {
-            color: #858990;
-            font-size: 13px;
-        }
-
-        .coordinate-value {
-            font-size: 13px;
-            font-weight: 600;
-
-            text-align: right;
-
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 10px;
             word-break: break-all;
-        }
-
-        .updated {
+            font-size: 13px;
             margin-top: 12px;
-
-            color: #92969c;
-
-            font-size: 11px;
         }
 
-        /* ================================
-           Error
-        ================================= */
+        button {
+            width: 100%;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        #requestButton {
+            background: #222;
+            color: white;
+        }
+
+        #copyButton {
+            background: #eee;
+            color: #222;
+        }
+
+        #mapsButton {
+            background: #4285f4;
+            color: white;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 10px;
+            background: #f0f0f0;
+            font-size: 14px;
+        }
+
+        .location {
+            margin-top: 16px;
+            padding: 15px;
+            background: #f7f7f7;
+            border-radius: 12px;
+        }
+
+        .location p {
+            margin: 7px 0;
+            font-size: 14px;
+        }
 
         .error {
-            display: none;
-
-            background: #fff0f0;
-            color: #c43d3d;
-
-            border-radius: 13px;
-
-            padding: 13px;
-
-            font-size: 13px;
-
-            margin-top: 14px;
-        }
-
-        .error.visible {
-            display: block;
-        }
-
-        /* ================================
-           Footer
-        ================================= */
-
-        .footer {
-            text-align: center;
-
-            color: #9a9da2;
-
-            font-size: 11px;
-
-            margin-top: 25px;
-        }
-
-        /* ================================
-           Responsive
-        ================================= */
-
-        @media (max-width: 360px) {
-
-            .container {
-                padding: 18px 14px 30px;
-            }
-
-            .card {
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 22px;
-            }
-
+            color: #d33;
+            margin-top: 12px;
         }
 
     </style>
@@ -388,742 +116,613 @@
 
 <body>
 
-    <main class="container">
+<div class="container">
 
-        <!-- ================================
-             Header
-        ================================= -->
+    <h1>WhereNow</h1>
 
-        <header class="header">
-
-            <div class="logo">
-                W
-            </div>
-
-            <div>
-
-                <div class="brand">
-                    WhereNow
-                </div>
-
-                <div class="tagline">
-                    Share location, simply.
-                </div>
-
-            </div>
-
-        </header>
+    <div class="subtitle">
+        Request someone's live location.
+    </div>
 
 
-        <!-- ================================
-             Request Card
-        ================================= -->
+    <!-- Request -->
 
-        <section class="card">
+    <div class="card">
 
-            <div class="icon">
-                📍
-            </div>
-
-            <h1>
-                Request a location
-            </h1>
-
-            <p class="description">
-                Create a secure link and send it to the person
-                whose location you need.
-            </p>
-
-
-            <button
-                id="requestButton"
-                class="primary-button"
-                onclick="createLocationRequest()"
-            >
-                Request Location
-            </button>
-
-
-            <div
-                id="requestStatus"
-                class="status-row"
-            >
-
-                <span
-                    id="statusDot"
-                    class="status-dot"
-                ></span>
-
-                <span id="statusText">
-                    Waiting to create a request
-                </span>
-
-            </div>
-
-        </section>
-
-
-        <!-- ================================
-             Share Link Card
-        ================================= -->
-
-        <section
-            id="shareCard"
-            class="card"
-            style="display: none;"
+        <button
+            id="requestButton"
+            onclick="createRequest()"
         >
+            Request Location
+        </button>
 
-            <div class="section-title">
-                SHARE THIS LINK
-            </div>
-
-
-            <div class="share-box">
-
-                <div
-                    id="shareUrl"
-                    class="share-url"
-                >
-                    -
-                </div>
+    </div>
 
 
-                <button
-                    class="copy-button"
-                    onclick="copyShareLink()"
-                >
-                    Copy
-                </button>
+    <!-- Share Link -->
 
-            </div>
+    <div
+        id="shareCard"
+        class="card"
+        style="display:none;"
+    >
 
-
-            <div
-                id="waitingText"
-                class="status-row"
-            >
-
-                <span
-                    class="status-dot"
-                ></span>
-
-                <span>
-                    Waiting for them to open the link...
-                </span>
-
-            </div>
-
-        </section>
-
-
-        <!-- ================================
-             Location Card
-        ================================= -->
-
-        <section
-            id="locationCard"
-            class="card location-card"
-        >
-
-            <div class="location-status">
-
-                <span class="live-dot"></span>
-
-                <span class="live-text">
-                    Live location received
-                </span>
-
-            </div>
-
-
-            <div class="coordinates">
-
-                <div class="coordinate-row">
-
-                    <span class="coordinate-label">
-                        Latitude
-                    </span>
-
-                    <span
-                        id="latitude"
-                        class="coordinate-value"
-                    >
-                        -
-                    </span>
-
-                </div>
-
-
-                <div class="coordinate-row">
-
-                    <span class="coordinate-label">
-                        Longitude
-                    </span>
-
-                    <span
-                        id="longitude"
-                        class="coordinate-value"
-                    >
-                        -
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div
-                id="updatedAt"
-                class="updated"
-            >
-                Waiting for update...
-            </div>
-
-
-            <button
-                id="mapsButton"
-                class="maps-button"
-                onclick="openGoogleMaps()"
-            >
-                Open in Google Maps
-            </button>
-
-        </section>
-
-
-        <!-- ================================
-             Error
-        ================================= -->
+        <strong>
+            Send this link to the person:
+        </strong>
 
         <div
-            id="error"
-            class="error"
+            id="shareUrl"
+            class="share-url"
         ></div>
 
 
-        <div class="footer">
-            WhereNow · Live location sharing
+        <button
+            id="copyButton"
+            onclick="copyLink()"
+        >
+            Copy Link
+        </button>
+
+    </div>
+
+
+    <!-- Status -->
+
+    <div
+        id="locationCard"
+        class="card"
+        style="display:none;"
+    >
+
+        <div
+            id="status"
+            class="status"
+        >
+            Waiting...
         </div>
 
-    </main>
+
+        <div
+            id="locationInfo"
+            class="location"
+            style="display:none;"
+        >
+
+            <p>
+                <strong>Latitude:</strong>
+                <span id="latitude">-</span>
+            </p>
+
+            <p>
+                <strong>Longitude:</strong>
+                <span id="longitude">-</span>
+            </p>
+
+            <p>
+                <strong>Updated:</strong>
+                <span id="updatedAt">-</span>
+            </p>
+
+        </div>
 
 
-    <script src="/socket.io/socket.io.js"></script>
+        <button
+            id="mapsButton"
+            onclick="openGoogleMaps()"
+            style="display:none;"
+        >
+            Open Route in Google Maps
+        </button>
+
+    </div>
 
 
-    <script>
+    <div
+        id="error"
+        class="error"
+    ></div>
 
-        // ========================================
-        // Base URL
-        // ========================================
-
-        const BASE_URL =
-            window.location.origin;
+</div>
 
 
-        // ========================================
-        // Elements
-        // ========================================
+<script>
 
-        const requestButton =
-            document.getElementById(
-                "requestButton"
-            );
-
-        const shareCard =
-            document.getElementById(
-                "shareCard"
-            );
-
-        const shareUrlElement =
-            document.getElementById(
-                "shareUrl"
-            );
-
-        const locationCard =
-            document.getElementById(
-                "locationCard"
-            );
-
-        const latitudeElement =
-            document.getElementById(
-                "latitude"
-            );
-
-        const longitudeElement =
-            document.getElementById(
-                "longitude"
-            );
-
-        const updatedAtElement =
-            document.getElementById(
-                "updatedAt"
-            );
-
-        const statusText =
-            document.getElementById(
-                "statusText"
-            );
-
-        const statusDot =
-            document.getElementById(
-                "statusDot"
-            );
-
-        const waitingText =
-            document.getElementById(
-                "waitingText"
-            );
-
-        const errorElement =
-            document.getElementById(
-                "error"
-            );
+    const BASE_URL =
+        window.location.origin;
 
 
-        // ========================================
-        // Variables
-        // ========================================
-
-        let requestId = null;
-
-        let shareUrl = null;
-
-        let latestLocation = null;
+    const socket =
+        io(window.location.origin);
 
 
-        // ========================================
-        // Socket
-        // ========================================
+    let requestId = null;
 
-        const socket =
-            io(BASE_URL);
+    let latestLocation = null;
+
+    let requesterLocation = null;
 
 
-        // ========================================
-        // Socket Connected
-        // ========================================
+    const shareCard =
+        document.getElementById(
+            "shareCard"
+        );
 
-        socket.on(
-            "connect",
-            () => {
+    const shareUrlElement =
+        document.getElementById(
+            "shareUrl"
+        );
 
-                console.log(
-                    "Socket connected:",
-                    socket.id
-                );
+    const locationCard =
+        document.getElementById(
+            "locationCard"
+        );
 
-            }
+    const statusElement =
+        document.getElementById(
+            "status"
+        );
+
+    const locationInfo =
+        document.getElementById(
+            "locationInfo"
+        );
+
+    const mapsButton =
+        document.getElementById(
+            "mapsButton"
+        );
+
+    const errorElement =
+        document.getElementById(
+            "error"
         );
 
 
-        // ========================================
-        // Create Request
-        // ========================================
+    // ========================================
+    // Get A's Location
+    // ========================================
 
-        async function createLocationRequest() {
+    function startRequesterLocation() {
 
-            hideError();
+        if (
+            !navigator.geolocation
+        ) {
 
+            console.log(
+                "Geolocation not supported"
+            );
 
-            requestButton.disabled =
-                true;
-
-            requestButton.innerText =
-                "Creating request...";
-
-
-            try {
-
-                const response =
-                    await fetch(
-                        `${BASE_URL}/location-request`,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({})
-                        }
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        data.message ||
-                        "Unable to create request."
-                    );
-
-                }
-
-
-                requestId =
-                    data.requestId;
-
-
-                shareUrl =
-                    data.shareUrl;
-
-
-                console.log(
-                    "Request created:",
-                    data
-                );
-
-
-                shareUrlElement.innerText =
-                    shareUrl;
-
-
-                shareCard.style.display =
-                    "block";
-
-
-                requestButton.innerText =
-                    "Request Created";
-
-
-                statusText.innerText =
-                    "Waiting for location";
-
-
-                statusDot.classList.remove(
-                    "active"
-                );
-
-
-                // Join socket room
-                socket.emit(
-                    "join-request",
-                    requestId
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    error
-                );
-
-
-                showError(
-                    error.message
-                );
-
-
-                requestButton.disabled =
-                    false;
-
-                requestButton.innerText =
-                    "Request Location";
-
-            }
-
+            return;
         }
 
 
-        // ========================================
-        // Request Status
-        // ========================================
+        navigator.geolocation.watchPosition(
 
-        socket.on(
-            "request-status",
-            (data) => {
+            (position) => {
+
+                requesterLocation = {
+
+                    latitude:
+                        position.coords.latitude,
+
+                    longitude:
+                        position.coords.longitude,
+                };
+
 
                 console.log(
-                    "Request status:",
-                    data
+                    "A location:",
+                    requesterLocation
                 );
 
 
-                if (
-                    data.requestId !==
-                    requestId
-                ) {
-                    return;
-                }
+                updateMapsButton();
+            },
 
 
-                if (
-                    data.location
-                ) {
+            (error) => {
 
-                    updateLocation(
-                        data.location
-                    );
+                console.log(
+                    "A location error:",
+                    error.message
+                );
+            },
 
-                }
 
+            {
+                enableHighAccuracy: true,
+
+                maximumAge: 5000,
+
+                timeout: 10000,
             }
+        );
+    }
+
+
+    // ========================================
+    // Create Request
+    // ========================================
+
+    async function createRequest() {
+
+        errorElement.innerText = "";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${BASE_URL}/location-request`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                        },
+
+                        body: JSON.stringify({}),
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message
+                );
+            }
+
+
+            requestId =
+                data.requestId;
+
+
+            shareUrlElement.innerText =
+                data.shareUrl;
+
+
+            shareCard.style.display =
+                "block";
+
+
+            locationCard.style.display =
+                "block";
+
+
+            statusElement.innerText =
+                "Waiting for the person to share their location...";
+
+
+            socket.emit(
+                "join-request",
+                {
+                    requestId,
+
+                    role: "requester",
+                }
+            );
+
+
+            startRequesterLocation();
+
+
+            document.getElementById(
+                "requestButton"
+            ).style.display =
+                "none";
+
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            errorElement.innerText =
+                error.message;
+        }
+    }
+
+
+    // ========================================
+    // Copy Link
+    // ========================================
+
+    async function copyLink() {
+
+        await navigator.clipboard.writeText(
+            shareUrlElement.innerText
         );
 
 
-        // ========================================
-        // Live Location
-        // ========================================
-
-        socket.on(
-            "location-update",
-            (location) => {
-
-                console.log(
-                    "Live location received:",
-                    location
-                );
+        document.getElementById(
+            "copyButton"
+        ).innerText =
+            "Copied ✓";
+    }
 
 
-                updateLocation(
-                    location
-                );
+    // ========================================
+    // Location Update from B
+    // ========================================
 
-            }
-        );
+    socket.on(
+        "location-update",
+        (location) => {
 
-
-        // ========================================
-        // Update Location UI
-        // ========================================
-
-        function updateLocation(
-            location
-        ) {
-
-            if (
-                !location ||
-                location.latitude === undefined ||
-                location.longitude === undefined
-            ) {
-                return;
-            }
+            console.log(
+                "B location:",
+                location
+            );
 
 
             latestLocation =
                 location;
 
 
-            latitudeElement.innerText =
-                Number(
-                    location.latitude
-                ).toFixed(6);
+            locationInfo.style.display =
+                "block";
 
 
-            longitudeElement.innerText =
-                Number(
-                    location.longitude
-                ).toFixed(6);
+            document.getElementById(
+                "latitude"
+            ).innerText =
+                location.latitude.toFixed(6);
+
+
+            document.getElementById(
+                "longitude"
+            ).innerText =
+                location.longitude.toFixed(6);
+
+
+            document.getElementById(
+                "updatedAt"
+            ).innerText =
+                new Date(
+                    location.updatedAt
+                ).toLocaleTimeString();
+
+
+            statusElement.innerText =
+                "🟢 Live location is active";
+
+
+            updateMapsButton();
+        }
+    );
+
+
+    // ========================================
+    // Sharing Started
+    // ========================================
+
+    socket.on(
+        "sharing-started",
+        () => {
+
+            statusElement.innerText =
+                "🟢 Live location is active";
+        }
+    );
+
+
+    // ========================================
+    // Sharing Stopped
+    // ========================================
+
+    socket.on(
+        "sharing-stopped",
+        (data) => {
+
+            statusElement.innerText =
+                "🔴 Location sharing stopped";
+
+
+            if (data.location) {
+
+                latestLocation =
+                    data.location;
+
+                updateMapsButton();
+            }
+        }
+    );
+
+
+    // ========================================
+    // Sharing Disconnected
+    // ========================================
+
+    socket.on(
+        "sharing-disconnected",
+        (data) => {
+
+            statusElement.innerText =
+                "⚠️ Location sharing disconnected";
+
+
+            if (data.location) {
+
+                latestLocation =
+                    data.location;
+
+                updateMapsButton();
+            }
+        }
+    );
+
+
+    // ========================================
+    // Request Status
+    // ========================================
+
+    socket.on(
+        "request-status",
+        (data) => {
+
+            console.log(
+                "Request status:",
+                data
+            );
 
 
             if (
-                location.updatedAt
+                data.status ===
+                "pending"
             ) {
 
-                const date =
-                    new Date(
-                        location.updatedAt
-                    );
-
-
-                updatedAtElement.innerText =
-                    `Last updated: ${date.toLocaleTimeString()}`;
-
+                statusElement.innerText =
+                    "Waiting for location sharing...";
             }
 
 
-            locationCard.classList.add(
-                "visible"
-            );
-
-
-            statusText.innerText =
-                "Location is live";
-
-
-            statusDot.classList.add(
+            if (
+                data.status ===
                 "active"
-            );
+            ) {
+
+                statusElement.innerText =
+                    "🟢 Live location is active";
+            }
 
 
-            waitingText.innerHTML =
-                `
-                <span class="status-dot active"></span>
-                <span>Location sharing is active</span>
-                `;
+            if (
+                data.status ===
+                "stopped"
+            ) {
 
+                statusElement.innerText =
+                    "🔴 Location sharing stopped";
+            }
+
+
+            if (
+                data.status ===
+                "disconnected"
+            ) {
+
+                statusElement.innerText =
+                    "⚠️ Location sharing disconnected";
+            }
+
+
+            if (data.location) {
+
+                latestLocation =
+                    data.location;
+
+                locationInfo.style.display =
+                    "block";
+
+
+                document.getElementById(
+                    "latitude"
+                ).innerText =
+                    data.location.latitude.toFixed(6);
+
+
+                document.getElementById(
+                    "longitude"
+                ).innerText =
+                    data.location.longitude.toFixed(6);
+
+
+                document.getElementById(
+                    "updatedAt"
+                ).innerText =
+                    new Date(
+                        data.location.updatedAt
+                    ).toLocaleTimeString();
+
+
+                updateMapsButton();
+            }
         }
+    );
 
 
-        // ========================================
-        // Open Google Maps
-        // ========================================
+    // ========================================
+    // Google Maps Button
+    // ========================================
 
-        function openGoogleMaps() {
+    function updateMapsButton() {
 
-            if (!latestLocation) {
+        if (
+            requesterLocation &&
+            latestLocation
+        ) {
 
-                showError(
-                    "Location is not available yet."
-                );
+            mapsButton.style.display =
+                "block";
 
-                return;
+        } else {
 
-            }
-
-
-            const latitude =
-                latestLocation.latitude;
-
-            const longitude =
-                latestLocation.longitude;
-
-
-            const mapsUrl =
-                `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-
-
-            window.open(
-                mapsUrl,
-                "_blank"
-            );
-
+            mapsButton.style.display =
+                "none";
         }
+    }
 
 
-        // ========================================
-        // Copy Share Link
-        // ========================================
+    // ========================================
+    // Open Google Maps Directions
+    // ========================================
 
-        async function copyShareLink() {
+    function openGoogleMaps() {
 
-            if (!shareUrl) {
-                return;
-            }
-
-
-            try {
-
-                await navigator.clipboard.writeText(
-                    shareUrl
-                );
-
-
-                const button =
-                    document.querySelector(
-                        ".copy-button"
-                    );
-
-
-                button.innerText =
-                    "Copied!";
-
-
-                setTimeout(
-                    () => {
-
-                        button.innerText =
-                            "Copy";
-
-                    },
-                    1500
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    "Copy failed:",
-                    error
-                );
-
-                showError(
-                    "Unable to copy the link."
-                );
-
-            }
-
-        }
-
-
-        // ========================================
-        // Socket Error
-        // ========================================
-
-        socket.on(
-            "request-error",
-            (data) => {
-
-                console.error(
-                    "Request error:",
-                    data
-                );
-
-
-                showError(
-                    data.message ||
-                    "Something went wrong."
-                );
-
-            }
-        );
-
-
-        // ========================================
-        // Connection Error
-        // ========================================
-
-        socket.on(
-            "connect_error",
-            (error) => {
-
-                console.error(
-                    "Socket connection error:",
-                    error
-                );
-
-
-                showError(
-                    "Connection to server failed."
-                );
-
-            }
-        );
-
-
-        // ========================================
-        // Error Helpers
-        // ========================================
-
-        function showError(
-            message
+        if (
+            !requesterLocation ||
+            !latestLocation
         ) {
 
             errorElement.innerText =
-                message;
+                "A and B locations are not available yet.";
 
-            errorElement.classList.add(
-                "visible"
-            );
-
+            return;
         }
 
 
-        function hideError() {
+        const origin =
+            `${requesterLocation.latitude},${requesterLocation.longitude}`;
 
-            errorElement.classList.remove(
-                "visible"
-            );
 
+        const destination =
+            `${latestLocation.latitude},${latestLocation.longitude}`;
+
+
+        const mapsUrl =
+            `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+
+
+        window.open(
+            mapsUrl,
+            "_blank"
+        );
+    }
+
+
+    // ========================================
+    // Socket Errors
+    // ========================================
+
+    socket.on(
+        "request-error",
+        (data) => {
+
+            errorElement.innerText =
+                data.message;
         }
+    );
 
-    </script>
+</script>
 
 </body>
 

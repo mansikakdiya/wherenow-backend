@@ -1,4 +1,3 @@
-
 require("dotenv").config();
 
 const path = require("path");
@@ -33,7 +32,7 @@ app.use(express.static(path.join(__dirname, "web")));
 
 
 // ========================================
-// B - Share Location Page
+// Pages
 // ========================================
 
 app.get("/", (req, res) => {
@@ -41,11 +40,6 @@ app.get("/", (req, res) => {
         path.join(__dirname, "web", "index.html")
     );
 });
-
-
-// ========================================
-// A - Request Location Page
-// ========================================
 
 app.get("/requester", (req, res) => {
     res.sendFile(
@@ -60,12 +54,11 @@ app.get("/requester", (req, res) => {
 
 app.post("/location-request", (req, res) => {
 
-    const requestId =
-        Date.now().toString();
+    const requestId = Date.now().toString();
 
     requests[requestId] = {
 
-        requestId: requestId,
+        requestId,
 
         status: "pending",
 
@@ -74,6 +67,9 @@ app.post("/location-request", (req, res) => {
 
         location: null,
 
+        requesterSocketId: null,
+
+        sharerSocketId: null,
     };
 
     console.log(
@@ -86,13 +82,11 @@ app.post("/location-request", (req, res) => {
         message:
             "Location request created",
 
-        requestId: requestId,
+        requestId,
 
         shareUrl:
             `${req.protocol}://${req.get("host")}/?requestId=${requestId}`,
-
     });
-
 });
 
 
@@ -116,9 +110,7 @@ app.get(
 
                 message:
                     "Location request not found",
-
             });
-
         }
 
         res.json({
@@ -134,99 +126,9 @@ app.get(
 
             location:
                 request.location,
-
         });
-
     }
 );
-
-
-// ========================================
-// Receive Location through HTTP
-// ========================================
-
-app.post("/location", (req, res) => {
-
-    const {
-        requestId,
-        latitude,
-        longitude,
-    } = req.body;
-
-
-    if (
-        !requestId ||
-        latitude === undefined ||
-        longitude === undefined
-    ) {
-
-        return res.status(400).json({
-
-            message:
-                "requestId, latitude and longitude are required",
-
-        });
-
-    }
-
-
-    const request =
-        requests[requestId];
-
-
-    if (!request) {
-
-        return res.status(404).json({
-
-            message:
-                "Location request not found",
-
-        });
-
-    }
-
-
-    request.location = {
-
-        latitude:
-            latitude,
-
-        longitude:
-            longitude,
-
-        updatedAt:
-            new Date().toISOString(),
-
-    };
-
-
-    request.status =
-        "active";
-
-
-    console.log(
-        "Location received:",
-        request.location
-    );
-
-
-    io.to(requestId).emit(
-        "location-update",
-        request.location
-    );
-
-
-    res.json({
-
-        message:
-            "Location received successfully",
-
-        location:
-            request.location,
-
-    });
-
-});
 
 
 // ========================================
@@ -242,30 +144,31 @@ io.on("connection", (socket) => {
 
 
     // ========================================
-    // Join Request Room
+    // Join Request
     // ========================================
 
     socket.on(
         "join-request",
-        (requestId) => {
+        (data) => {
 
-            if (!requestId) {
+            const {
+                requestId,
+                role,
+            } = data || {};
+
+            if (!requestId || !role) {
 
                 console.log(
-                    "No request ID provided"
+                    "Invalid join request"
                 );
 
                 return;
-
             }
 
+            const request =
+                requests[requestId];
 
-            if (!requests[requestId]) {
-
-                console.log(
-                    "Invalid request ID:",
-                    requestId
-                );
+            if (!request) {
 
                 socket.emit(
                     "request-error",
@@ -276,34 +179,93 @@ io.on("connection", (socket) => {
                 );
 
                 return;
-
             }
 
 
             socket.join(requestId);
 
 
-            console.log(
-                `Socket ${socket.id} joined request ${requestId}`
-            );
+            if (role === "requester") {
+
+                request.requesterSocketId =
+                    socket.id;
+
+                console.log(
+                    `Requester ${socket.id} joined ${requestId}`
+                );
+
+            } else if (role === "sharer") {
+
+                request.sharerSocketId =
+                    socket.id;
+
+                console.log(
+                    `Sharer ${socket.id} joined ${requestId}`
+                );
+            }
 
 
             socket.emit(
                 "request-status",
                 {
 
-                    requestId:
-                        requestId,
+                    requestId,
 
                     status:
-                        requests[requestId].status,
+                        request.status,
 
                     location:
-                        requests[requestId].location,
-
+                        request.location,
                 }
             );
+        }
+    );
 
+
+    // ========================================
+    // Start Sharing
+    // ========================================
+
+    socket.on(
+        "start-sharing",
+        (data) => {
+
+            const {
+                requestId,
+            } = data || {};
+
+            const request =
+                requests[requestId];
+
+            if (!request) {
+                return;
+            }
+
+
+            if (
+                request.sharerSocketId !==
+                socket.id
+            ) {
+                return;
+            }
+
+
+            request.status =
+                "active";
+
+
+            console.log(
+                `Location sharing started: ${requestId}`
+            );
+
+
+            io.to(requestId).emit(
+                "sharing-started",
+                {
+                    message:
+                        "Location sharing started",
+                }
+            );
         }
     );
 
@@ -320,56 +282,42 @@ io.on("connection", (socket) => {
                 requestId,
                 latitude,
                 longitude,
-            } = data;
-
+            } = data || {};
 
             if (
                 !requestId ||
                 latitude === undefined ||
                 longitude === undefined
             ) {
-
-                console.log(
-                    "Invalid location data"
-                );
-
                 return;
-
             }
 
 
             const request =
                 requests[requestId];
 
-
             if (!request) {
-
-                socket.emit(
-                    "request-error",
-                    {
-
-                        message:
-                            "Location request not found",
-
-                    }
-                );
-
                 return;
+            }
 
+
+            // Only B can send location
+            if (
+                request.sharerSocketId !==
+                socket.id
+            ) {
+                return;
             }
 
 
             request.location = {
 
-                latitude:
-                    latitude,
+                latitude,
 
-                longitude:
-                    longitude,
+                longitude,
 
                 updatedAt:
                     new Date().toISOString(),
-
             };
 
 
@@ -383,13 +331,61 @@ io.on("connection", (socket) => {
             );
 
 
-            // Send location to everyone
-            // in this request room
             socket.to(requestId).emit(
                 "location-update",
                 request.location
             );
+        }
+    );
 
+
+    // ========================================
+    // Stop Sharing
+    // ========================================
+
+    socket.on(
+        "stop-sharing",
+        (data) => {
+
+            const {
+                requestId,
+            } = data || {};
+
+            const request =
+                requests[requestId];
+
+            if (!request) {
+                return;
+            }
+
+
+            if (
+                request.sharerSocketId !==
+                socket.id
+            ) {
+                return;
+            }
+
+
+            request.status =
+                "stopped";
+
+
+            console.log(
+                `Location sharing stopped: ${requestId}`
+            );
+
+
+            io.to(requestId).emit(
+                "sharing-stopped",
+                {
+                    message:
+                        "Location sharing stopped",
+
+                    location:
+                        request.location,
+                }
+            );
         }
     );
 
@@ -407,6 +403,62 @@ io.on("connection", (socket) => {
                 socket.id
             );
 
+
+            for (const requestId in requests) {
+
+                const request =
+                    requests[requestId];
+
+
+                // Only B disconnecting
+                // ends location sharing
+                if (
+                    request.sharerSocketId ===
+                    socket.id
+                ) {
+
+                    request.sharerSocketId =
+                        null;
+
+
+                    if (
+                        request.status ===
+                        "active"
+                    ) {
+
+                        request.status =
+                            "disconnected";
+
+
+                        console.log(
+                            `Sharer disconnected: ${requestId}`
+                        );
+
+
+                        io.to(requestId).emit(
+                            "sharing-disconnected",
+                            {
+                                message:
+                                    "Location sharing disconnected",
+
+                                location:
+                                    request.location,
+                            }
+                        );
+                    }
+                }
+
+
+                // A disconnected
+                if (
+                    request.requesterSocketId ===
+                    socket.id
+                ) {
+
+                    request.requesterSocketId =
+                        null;
+                }
+            }
         }
     );
 
@@ -419,7 +471,6 @@ io.on("connection", (socket) => {
 
 const PORT =
     process.env.PORT || 3000;
-
 
 server.listen(
     PORT,
