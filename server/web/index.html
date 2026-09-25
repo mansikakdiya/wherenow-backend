@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 
 <html>
@@ -13,11 +14,16 @@
 
     <h2>WhereNow</h2>
 
+
     <p>
         Someone wants you to share your location.
     </p>
 
-    <button onclick="acceptLocation()">
+
+    <button
+        id="shareButton"
+        onclick="acceptLocation()"
+    >
         Accept & Share Location
     </button>
 
@@ -26,8 +32,6 @@
         Connecting...
     </p>
 
-
-    <!-- Socket.IO -->
 
     <script src="/socket.io/socket.io.js"></script>
 
@@ -51,19 +55,27 @@
 
 
         // ========================================
-        // Status UI
+        // Status
         // ========================================
 
         const statusElement =
-            document.getElementById("status");
+            document.getElementById(
+                "status"
+            );
+
+
+        const shareButton =
+            document.getElementById(
+                "shareButton"
+            );
 
 
         // ========================================
-        // Socket Connection
+        // Socket.IO
         // ========================================
 
         const socket =
-            io("https://wherenow-backend-gfvd.onrender.com");
+            io(window.location.origin);
 
 
         // ========================================
@@ -84,10 +96,14 @@
                     "Connected";
 
 
-                // Join request room
-
                 socket.emit(
                     "join-request",
+                    requestId
+                );
+
+
+                console.log(
+                    "Joined request:",
                     requestId
                 );
 
@@ -155,36 +171,25 @@
 
 
         // ========================================
-        // Disconnect
-        // ========================================
-
-        socket.on(
-            "disconnect",
-            () => {
-
-                console.log(
-                    "Socket disconnected"
-                );
-
-
-                statusElement.innerText =
-                    "Disconnected";
-
-            }
-        );
-
-
-        // ========================================
-        // ACCEPT LOCATION
+        // Accept Location
         // ========================================
 
         function acceptLocation() {
 
+            if (!requestId) {
+
+                statusElement.innerText =
+                    "Invalid location request.";
+
+                return;
+
+            }
+
+
             if (!navigator.geolocation) {
 
-                alert(
-                    "Location is not supported."
-                );
+                statusElement.innerText =
+                    "Location is not supported.";
 
                 return;
 
@@ -192,10 +197,18 @@
 
 
             statusElement.innerText =
-                "Getting your location...";
+                "Starting live location...";
 
 
-            navigator.geolocation.getCurrentPosition(
+            shareButton.disabled =
+                true;
+
+
+            // ========================================
+            // Watch GPS continuously
+            // ========================================
+
+            navigator.geolocation.watchPosition(
 
                 function(position) {
 
@@ -208,19 +221,14 @@
 
 
                     console.log(
-                        "Latitude:",
-                        latitude
-                    );
-
-
-                    console.log(
-                        "Longitude:",
+                        "Live GPS:",
+                        latitude,
                         longitude
                     );
 
 
                     // ========================================
-                    // Send first location using Socket.IO
+                    // Send location to backend
                     // ========================================
 
                     socket.emit(
@@ -228,15 +236,12 @@
                         {
 
                             requestId:
-
                                 requestId,
 
                             latitude:
-
                                 latitude,
 
                             longitude:
-
                                 longitude
 
                         }
@@ -244,7 +249,7 @@
 
 
                     statusElement.innerText =
-                        "Location shared successfully.";
+                        "Location sharing is active.";
 
                 },
 
@@ -257,9 +262,26 @@
                     );
 
 
-                    alert(
-                        "Please allow location access."
-                    );
+                    shareButton.disabled =
+                        false;
+
+
+                    statusElement.innerText =
+                        "Please allow location access.";
+
+                },
+
+
+                {
+
+                    enableHighAccuracy:
+                        true,
+
+                    maximumAge:
+                        0,
+
+                    timeout:
+                        10000
 
                 }
 
@@ -271,4 +293,5 @@
 
 </body>
 
-</html> 
+</html>
+

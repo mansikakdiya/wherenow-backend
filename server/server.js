@@ -1,3 +1,4 @@
+
 require("dotenv").config();
 
 const path = require("path");
@@ -8,25 +9,10 @@ const { Server } = require("socket.io");
 
 const app = express();
 
-
-// ========================================
-// Middleware
-// ========================================
-
 app.use(cors());
 app.use(express.json());
 
-
-// ========================================
-// HTTP Server
-// ========================================
-
 const server = http.createServer(app);
-
-
-// ========================================
-// Socket.IO
-// ========================================
 
 const io = new Server(server, {
     cors: {
@@ -35,98 +21,75 @@ const io = new Server(server, {
     },
 });
 
-
-// ========================================
-// Temporary Request Storage
-// ========================================
-//
-// For now we keep requests in memory.
-// Later we can move this to MongoDB.
-//
-
+// Temporary in-memory storage
 const requests = {};
 
 
 // ========================================
-// Serve Web Page
+// Serve web files
 // ========================================
 
 app.use(express.static(path.join(__dirname, "web")));
 
 
 // ========================================
-// Health Check
+// B - Share Location Page
 // ========================================
 
 app.get("/", (req, res) => {
-
-    res.json({
-        message: "WhereNow API is running",
-        status: "ok",
-    });
-
+    res.sendFile(
+        path.join(__dirname, "web", "index.html")
+    );
 });
 
 
 // ========================================
-// CREATE LOCATION REQUEST
+// A - Request Location Page
+// ========================================
+
+app.get("/requester", (req, res) => {
+    res.sendFile(
+        path.join(__dirname, "web", "requester.html")
+    );
+});
+
+
+// ========================================
+// Create Location Request
 // ========================================
 
 app.post("/location-request", (req, res) => {
 
-    const { phoneNumber } = req.body;
-
-
-    // Validation
-
-    if (!phoneNumber) {
-
-        return res.status(400).json({
-            message: "Phone number is required",
-        });
-
-    }
-
-
-    // Create unique request ID
-
     const requestId =
         Date.now().toString();
-
-
-    // Store request
 
     requests[requestId] = {
 
         requestId: requestId,
 
-        phoneNumber: phoneNumber,
-
         status: "pending",
 
-        createdAt: new Date().toISOString(),
+        createdAt:
+            new Date().toISOString(),
 
         location: null,
 
     };
-
 
     console.log(
         "Location request created:",
         requestId
     );
 
-
-    // Return response
-
     res.status(201).json({
 
-        message: "Location request created",
+        message:
+            "Location request created",
 
         requestId: requestId,
 
         shareUrl:
-            `https://wherenow-backend-gfvd.onrender.com/?requestId=${requestId}`,
+            `${req.protocol}://${req.get("host")}/?requestId=${requestId}`,
 
     });
 
@@ -134,46 +97,52 @@ app.post("/location-request", (req, res) => {
 
 
 // ========================================
-// GET LOCATION REQUEST
+// Get Request Status
 // ========================================
 
-app.get("/location-request/:requestId", (req, res) => {
+app.get(
+    "/location-request/:requestId",
+    (req, res) => {
 
-    const { requestId } = req.params;
+        const { requestId } =
+            req.params;
 
+        const request =
+            requests[requestId];
 
-    const request =
-        requests[requestId];
+        if (!request) {
 
+            return res.status(404).json({
 
-    if (!request) {
+                message:
+                    "Location request not found",
 
-        return res.status(404).json({
+            });
 
-            message: "Location request not found",
+        }
+
+        res.json({
+
+            requestId:
+                request.requestId,
+
+            status:
+                request.status,
+
+            createdAt:
+                request.createdAt,
+
+            location:
+                request.location,
 
         });
 
     }
-
-
-    res.json({
-
-        requestId: request.requestId,
-
-        status: request.status,
-
-        createdAt: request.createdAt,
-
-        location: request.location,
-
-    });
-
-});
+);
 
 
 // ========================================
-// RECEIVE LOCATION
+// Receive Location through HTTP
 // ========================================
 
 app.post("/location", (req, res) => {
@@ -184,8 +153,6 @@ app.post("/location", (req, res) => {
         longitude,
     } = req.body;
 
-
-    // Validation
 
     if (
         !requestId ||
@@ -203,8 +170,6 @@ app.post("/location", (req, res) => {
     }
 
 
-    // Check request
-
     const request =
         requests[requestId];
 
@@ -213,20 +178,21 @@ app.post("/location", (req, res) => {
 
         return res.status(404).json({
 
-            message: "Location request not found",
+            message:
+                "Location request not found",
 
         });
 
     }
 
 
-    // Save latest location
-
     request.location = {
 
-        latitude: latitude,
+        latitude:
+            latitude,
 
-        longitude: longitude,
+        longitude:
+            longitude,
 
         updatedAt:
             new Date().toISOString(),
@@ -234,7 +200,8 @@ app.post("/location", (req, res) => {
     };
 
 
-    request.status = "active";
+    request.status =
+        "active";
 
 
     console.log(
@@ -242,9 +209,6 @@ app.post("/location", (req, res) => {
         request.location
     );
 
-
-    // Send location to everyone
-    // inside this request room
 
     io.to(requestId).emit(
         "location-update",
@@ -266,7 +230,7 @@ app.post("/location", (req, res) => {
 
 
 // ========================================
-// SOCKET.IO
+// Socket.IO
 // ========================================
 
 io.on("connection", (socket) => {
@@ -277,9 +241,9 @@ io.on("connection", (socket) => {
     );
 
 
-    // ------------------------------------
-    // JOIN LOCATION REQUEST
-    // ------------------------------------
+    // ========================================
+    // Join Request Room
+    // ========================================
 
     socket.on(
         "join-request",
@@ -295,8 +259,6 @@ io.on("connection", (socket) => {
 
             }
 
-
-            // Check request exists
 
             if (!requests[requestId]) {
 
@@ -318,8 +280,6 @@ io.on("connection", (socket) => {
             }
 
 
-            // Join Socket.IO room
-
             socket.join(requestId);
 
 
@@ -328,18 +288,19 @@ io.on("connection", (socket) => {
             );
 
 
-            // Send current request state
-
             socket.emit(
                 "request-status",
                 {
-                    requestId: requestId,
+
+                    requestId:
+                        requestId,
 
                     status:
                         requests[requestId].status,
 
                     location:
                         requests[requestId].location,
+
                 }
             );
 
@@ -347,9 +308,9 @@ io.on("connection", (socket) => {
     );
 
 
-    // ------------------------------------
-    // LIVE LOCATION UPDATE
-    // ------------------------------------
+    // ========================================
+    // Live Location Update
+    // ========================================
 
     socket.on(
         "location-update",
@@ -368,6 +329,10 @@ io.on("connection", (socket) => {
                 longitude === undefined
             ) {
 
+                console.log(
+                    "Invalid location data"
+                );
+
                 return;
 
             }
@@ -382,8 +347,10 @@ io.on("connection", (socket) => {
                 socket.emit(
                     "request-error",
                     {
+
                         message:
                             "Location request not found",
+
                     }
                 );
 
@@ -392,13 +359,13 @@ io.on("connection", (socket) => {
             }
 
 
-            // Update latest location
-
             request.location = {
 
-                latitude,
+                latitude:
+                    latitude,
 
-                longitude,
+                longitude:
+                    longitude,
 
                 updatedAt:
                     new Date().toISOString(),
@@ -406,7 +373,8 @@ io.on("connection", (socket) => {
             };
 
 
-            request.status = "active";
+            request.status =
+                "active";
 
 
             console.log(
@@ -416,8 +384,7 @@ io.on("connection", (socket) => {
 
 
             // Send location to everyone
-            // except sender
-
+            // in this request room
             socket.to(requestId).emit(
                 "location-update",
                 request.location
@@ -427,9 +394,9 @@ io.on("connection", (socket) => {
     );
 
 
-    // ------------------------------------
-    // DISCONNECT
-    // ------------------------------------
+    // ========================================
+    // Disconnect
+    // ========================================
 
     socket.on(
         "disconnect",
@@ -447,7 +414,7 @@ io.on("connection", (socket) => {
 
 
 // ========================================
-// SERVER START
+// Start Server
 // ========================================
 
 const PORT =

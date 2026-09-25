@@ -1,0 +1,309 @@
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>WhereNow - Request Location</title>
+
+</head>
+
+
+<body>
+
+    <h2>WhereNow</h2>
+
+    <p>
+        Request someone's live location.
+    </p>
+
+
+    <button onclick="createRequest()">
+        Create Location Request
+    </button>
+
+
+    <p id="status">
+        Ready.
+    </p>
+
+
+    <div
+        id="shareSection"
+        style="display: none;"
+    >
+
+        <p>
+            Send this link to the person:
+        </p>
+
+
+        <input
+            id="shareUrl"
+            type="text"
+            readonly
+            style="width: 400px;"
+        />
+
+    </div>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+
+
+    <script>
+
+        const BASE_URL =
+            window.location.origin;
+
+
+        const statusElement =
+            document.getElementById(
+                "status"
+            );
+
+
+        const shareSection =
+            document.getElementById(
+                "shareSection"
+            );
+
+
+        const shareUrlInput =
+            document.getElementById(
+                "shareUrl"
+            );
+
+
+        // ========================================
+        // Create Request
+        // ========================================
+
+        async function createRequest() {
+
+            statusElement.innerText =
+                "Creating location request...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${BASE_URL}/location-request`,
+                        {
+
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json"
+
+                            },
+
+                            body:
+                                JSON.stringify({})
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "Create request response:",
+                    data
+                );
+
+
+                if (!response.ok) {
+
+                    statusElement.innerText =
+                        data.message;
+
+                    return;
+
+                }
+
+
+                const requestId =
+                    data.requestId;
+
+
+                const shareUrl =
+                    `${BASE_URL}/?requestId=${requestId}`;
+
+
+                shareUrlInput.value =
+                    shareUrl;
+
+
+                shareSection.style.display =
+                    "block";
+
+
+                statusElement.innerText =
+                    "Request created. Waiting for location...";
+
+
+                connectToRequest(
+                    requestId
+                );
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Request error:",
+                    error
+                );
+
+
+                statusElement.innerText =
+                    "Something went wrong.";
+
+            }
+
+        }
+
+
+        // ========================================
+        // Connect A to Socket.IO
+        // ========================================
+
+        function connectToRequest(
+            requestId
+        ) {
+
+            const socket =
+                io(BASE_URL);
+
+
+            socket.on(
+                "connect",
+                () => {
+
+                    console.log(
+                        "A connected:",
+                        socket.id
+                    );
+
+
+                    socket.emit(
+                        "join-request",
+                        requestId
+                    );
+
+
+                    console.log(
+                        "A joined request:",
+                        requestId
+                    );
+
+                }
+            );
+
+
+            socket.on(
+                "request-status",
+                (data) => {
+
+                    console.log(
+                        "Current request status:",
+                        data
+                    );
+
+
+                    if (data.location) {
+
+                        showLocation(
+                            data.location
+                        );
+
+                    }
+
+                }
+            );
+
+
+            // ========================================
+            // Receive Live Location
+            // ========================================
+
+            socket.on(
+                "location-update",
+                (location) => {
+
+                    console.log(
+                        "B's live location:",
+                        location
+                    );
+
+
+                    showLocation(
+                        location
+                    );
+
+                }
+            );
+
+
+            socket.on(
+                "request-error",
+                (data) => {
+
+                    console.error(
+                        "Request error:",
+                        data
+                    );
+
+
+                    statusElement.innerText =
+                        data.message;
+
+                }
+            );
+
+
+            socket.on(
+                "connect_error",
+                (error) => {
+
+                    console.error(
+                        "Socket error:",
+                        error
+                    );
+
+
+                    statusElement.innerText =
+                        "Socket connection failed.";
+
+                }
+            );
+
+        }
+
+
+        // ========================================
+        // Show Location
+        // ========================================
+
+        function showLocation(
+            location
+        ) {
+
+            statusElement.innerText =
+                `Live location: ${location.latitude}, ${location.longitude}`;
+
+        }
+
+    </script>
+
+</body>
+
+</html>
+
